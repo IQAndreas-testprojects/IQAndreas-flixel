@@ -46,6 +46,7 @@ package org.flixel
 			//New instances of the same class are however allowed
 			//The new callback is ignored if returned. :(
 			if (_subState == requestedState) { return; }
+			_subStateCloseCallback = closeCallback;
 			
 			//Destroy the old state (if there is an old state)
 			if(_subState != null)
@@ -61,6 +62,9 @@ package org.flixel
 				//WARNING: What if the state has already been created?
 				// I'm just copying the code from "FlxGame::switchState" which doesn't check for already craeted states. :/
 				_subState.parentState = this;
+				
+				//Reset the keys so things like "justPressed" won't interfere
+				if (_subState.isBlocking) { FlxG.keys.reset(); }
 				_subState.create();
 			}
 		}
@@ -69,7 +73,7 @@ package org.flixel
 		{
 			//Call the "closeCallback" while subState variables are still in memory,
 			//But after "FlxSubState.close()" has been called
-			if (_subStateCloseCallback)
+			if (_subStateCloseCallback != null)
 			{
 				_subStateCloseCallback.call(null, _subState, reason);
 				_subStateCloseCallback = null;

@@ -95,7 +95,8 @@ package org.flixel
 				this.update();
 			}
 			
-			if (_subState) { _subState.update(); }
+			//The current state will update before the subState. Is that good or bad?
+			if (_subState) { _subState.tryUpdate(); }
 		}
 		
 		//ALWAYS draw the background state? Or is it better to only draw if if it's non-blocking?

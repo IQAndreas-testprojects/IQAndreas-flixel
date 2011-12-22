@@ -8,48 +8,49 @@ package org.flixel.system.input
 	 */
 	public class Input
 	{
-		// Values of "key.current" (for reference)
-		//	 0 - Not pressed
-		//	 2 - Just pressed
-		//	 1 - Pressing
-		//	-1 - Just released
+		// Values of "key.pressedFrame" (for reference)
+		//	 0 - Not pressed (ever)
+		//	 A positive value - The frame the key was last pressed down on
+		//		(and which implies that the key is currently being held down)
+		//	 A negative value - The frame the key was last released on
 		
 		/**
 		 * @private
+		 * Takes a string (the key name) and returns the key code
 		 */
 		internal var _lookup:Object;
 		/**
 		 * @private
 		 */
-		internal var _map:Array;
+		internal var _map:Vector.<Key>;
 		/**
 		 * @private
 		 */
-		internal const _total:uint = 256;
+		internal var _totalKeys:uint = 256;
+		
+		/**
+		 * @private
+		 */
+		//Start at 1, because "0" means "never pressed"
+		internal var _currentFrame:int = 1;
 		
 		/**
 		 * Constructor
 		 */
-		public function Input()
+		public function Input(totalKeys:uint = 256)
 		{
+			_totalKeys = totalKeys;
 			_lookup = new Object();
-			_map = new Array(_total);
+			_map = new Vector.<Key>(_totalKeys);
 		}
 		
 		/**
-		 * Updates the key states (for tracking just pressed, just released, etc).
+		 * Updates the current frame number
 		 */
 		public function update():void
 		{
-			var i:uint = 0;
-			while(i < _total)
-			{
-				var o:Object = _map[i++];
-				if(o == null) continue;
-				if((o.last == -1) && (o.current == -1)) o.current = 0;
-				else if((o.last == 2) && (o.current == 2)) o.current = 1;
-				o.last = o.current;
-			}
+			//It's that simple! :)
+			_currentFrame++;
 		}
 		
 		/**
@@ -58,13 +59,12 @@ package org.flixel.system.input
 		public function reset():void
 		{
 			var i:uint = 0;
-			while(i < _total)
+			while(i < _totalKeys)
 			{
-				var o:Object = _map[i++];
-				if(o == null) continue;
-				this[o.name] = false;
-				o.current = 0;
-				o.last = 0;
+				var key:Key = _map[i++];
+				if(key == null) continue;
+				this[key.name] = false;
+				key.framePressed = 0;
 			}
 		}
 		
@@ -75,7 +75,8 @@ package org.flixel.system.input
 		 * 
 		 * @return	Whether the key is pressed
 		 */
-		public function pressed(Key:String):Boolean { return this[Key]; }
+		//What if a key with that name is not found? :(
+		public function pressed(KeyName:String):Boolean { return this[KeyName]; }
 		
 		/**
 		 * Check to see if this key was just pressed.
@@ -84,7 +85,7 @@ package org.flixel.system.input
 		 * 
 		 * @return	Whether the key was just pressed
 		 */
-		public function justPressed(Key:String):Boolean { return _map[_lookup[Key]].current == 2; }
+		public function justPressed(KeyName:String):Boolean { return _map[_lookup[KeyName]].framePressed == (_currentFrame); }
 		
 		/**
 		 * Check to see if this key is just released.
@@ -93,7 +94,35 @@ package org.flixel.system.input
 		 * 
 		 * @return	Whether the key is just released.
 		 */
-		public function justReleased(Key:String):Boolean { return _map[_lookup[Key]].current == -1; }
+		public function justReleased(KeyName:String):Boolean { return _map[_lookup[KeyName]].framePressed == (-_currentFrame); }
+		
+		/**
+		 * Get how many frames (or ticks) have passed since the key was last pressed.
+		 * 
+		 * @param	Key		One of the key constants listed above (e.g. "LEFT" or "A").
+		 * 
+		 * @return	The number of frames since it was pressed. Will return 0 if the key was just pressed, and return -1 if the key has been released.
+		 */
+		public function framesSincePress(KeyName:String):int 
+		{ 
+			var key:Key = _map[_lookup[KeyName]];
+			return (key.framePressed <= 0) ? -1 : (_currentFrame - key.framePressed) ;
+		}
+		
+		/**
+		 * Get how many frames (or ticks) have passed since the key was last released.
+		 * 
+		 * @param	Key		One of the key constants listed above (e.g. "LEFT" or "A").
+		 * 
+		 * @return	The number of frames since it was released. Will return 0 if the key was just released, and return -1 if the key is currently pressed or has not yet been released.
+		 */
+		public function framesSinceRelease(KeyName:String):int 
+		{
+			var key:Key = _map[_lookup[KeyName]];
+			return (key.framePressed >= 0) ? -1 : (_currentFrame + key.framePressed);
+		}
+		
+		
 		
 		/**
 		 * If any keys are not "released" (0),
@@ -104,18 +133,18 @@ package org.flixel.system.input
 		 */
 		public function record():Array
 		{
-			var data:Array = null;
+			var data:Array = new Array();
 			var i:uint = 0;
-			while(i < _total)
+			while(i < _totalKeys)
 			{
-				var o:Object = _map[i++];
-				if((o == null) || (o.current == 0))
+				var key:Key = _map[i++];
+				if((key == null) || (key.framePressed == 0))
 					continue;
-				if(data == null)
-					data = new Array();
-				data.push({code:i-1,value:o.current});
+				
+				data.push({code:i-1,value:key.framePressed});
 			}
-			return data;
+			
+			return (data.length > 0) ? data : null;
 		}
 		
 		/**
@@ -128,15 +157,13 @@ package org.flixel.system.input
 		{
 			var i:uint = 0;
 			var l:uint = Record.length;
-			var o:Object;
-			var o2:Object;
 			while(i < l)
 			{
-				o = Record[i++];
-				o2 = _map[o.code];
-				o2.current = o.value;
+				var o:Object = Record[i++];
+				var key:Key = _map[o.code];
+				key.framePressed = o.value;
 				if(o.value > 0)
-					this[o2.name] = true;
+					this[key.name] = true;
 			}
 		}
 		
@@ -161,7 +188,7 @@ package org.flixel.system.input
 		 */
 		public function getKeyName(KeyCode:uint):String
 		{
-			var key:Object = _map[KeyCode];
+			var key:Key = _map[KeyCode];
 			return (key) ? key.name : "[key #" + KeyCode + "]";
 		}
 		
@@ -173,12 +200,13 @@ package org.flixel.system.input
 		public function any():Boolean
 		{
 			var i:uint = 0;
-			while(i < _total)
+			while(i < _totalKeys)
 			{
-				var o:Object = _map[i++];
-				if((o != null) && (o.current > 0))
-					return true;
+				var key:Key = _map[i++];
+				if(key && (key.framePressed > 0))
+					{ return true; }
 			}
+			
 			return false;
 		}
 		
@@ -189,13 +217,15 @@ package org.flixel.system.input
 		 */
 		public function justPressedAny():Boolean
 		{
+			var targetFrame:int = _currentFrame;
 			var i:uint = 0;
-			while(i < _total)
+			while(i < _totalKeys)
 			{
-				var o:Object = _map[i++];
-				if((o != null) && (o.current == 2))
-					return true;
+				var key:Key = _map[i++];
+				if(key && (key.framePressed == targetFrame))
+					{ return true; }
 			}
+			
 			return false;
 		}
 		
@@ -206,13 +236,15 @@ package org.flixel.system.input
 		 */
 		public function justReleasedAny():Boolean
 		{
+			var targetFrame:int = -_currentFrame;
 			var i:uint = 0;
-			while(i < _total)
+			while(i < _totalKeys)
 			{
-				var o:Object = _map[i++];
-				if((o != null) && (o.current == -1))
-					return true;
+				var key:Key = _map[i++];
+				if(key && (key.framePressed == targetFrame))
+					{ return true; }
 			}
+			
 			return false;
 		}
 		
@@ -225,7 +257,27 @@ package org.flixel.system.input
 		protected function addKey(KeyName:String,KeyCode:uint):void
 		{
 			_lookup[KeyName] = KeyCode;
-			_map[KeyCode] = { name: KeyName, current: 0, last: 0 };
+			_map[KeyCode] = new Key(KeyName, KeyCode);
+		}
+		
+		//Not actually more efficient, but definitely more organized
+		protected function setKeyPress(KeyCode:uint):void
+		{
+			var key:Key = _map[KeyCode];
+			if(key == null) return;
+			
+			key.framePressed = _currentFrame;
+			this[key.name] = true;
+		}
+		
+		//Not actually more efficient, but definitely more organized
+		protected function setKeyRelease(KeyCode:uint):void
+		{
+			var key:Key = _map[KeyCode];
+			if(key == null) return;
+			
+			key.framePressed = -_currentFrame;
+			this[key.name] = false;
 		}
 		
 		/**
@@ -237,4 +289,20 @@ package org.flixel.system.input
 			_map = null;
 		}
 	}
+}
+
+//Should this be a public class instead?
+// It won't be used outside of here anyway. :/
+final class Key
+{
+	public function Key(name:String, keyCode:uint)
+	{
+		this.name = name;
+		this.keyCode = keyCode;
+	}
+	
+	public var name:String;
+	public var keyCode:uint;
+	
+	public var framePressed:int = 0;
 }

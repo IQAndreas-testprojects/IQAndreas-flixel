@@ -1,6 +1,5 @@
 package org.flixel
 {
-	import org.flixel.system.FlxQuadTree;
 	
 	/**
 	 * This is the basic game "state" object - e.g. in a simple game
@@ -13,6 +12,21 @@ package org.flixel
 	public class FlxState extends FlxGroup
 	{
 		/**
+		 * After much debate, I have decided to add the "useMouse" option
+		 * which allows a SubState (most likely a menu) to have mouse interaction,
+		 * and when the menu closes, the mouse either shows or hides depending on
+		 * which preference the parent had.
+		 * 
+		 * Default background color is black.
+		 */
+		public function FlxState(bgColor:uint = 0xFF000000, useMouse:Boolean = false):void
+		{
+			//I hope setting them directly instead of waiting for "create" is not a problem. :(
+			this.bgColor = bgColor;
+			this.useMouse = useMouse;
+		}
+		
+		/**
 		 * This function is called after the game engine successfully switches states.
 		 * Override this function, NOT the constructor, to initialize or set up your game state.
 		 * We do NOT recommend overriding the constructor, unless you want some crazy unpredictable things to happen!
@@ -20,6 +34,22 @@ package org.flixel
 		public function create():void
 		{
 			
+		}
+		
+		public function get bgColor():uint { return FlxG.bgColor; }
+		public function set bgColor(value:uint):void { FlxG.bgColor = value; }
+		
+		private var _useMouse:Boolean = false;
+		public function get useMouse():Boolean { return _useMouse; }
+		public function set useMouse(value:Boolean):void
+		{
+			_useMouse = value;
+			this.updateMouseVisibility();
+		}
+		private function updateMouseVisibility():void
+		{ 
+			if (_useMouse) { FlxG.mouse.show(); }
+			else { FlxG.mouse.hide(); }
 		}
 		
 		
@@ -35,7 +65,9 @@ package org.flixel
 			this.setSubState(_requestedState, null);
 		}*/
 		
-		//Manually close the sub-state (will always give the reason CLOSED_BY_PARENT)
+		/**
+		 * Manually close the sub-state (will always give the reason FlxSubState.CLOSED_BY_PARENT)
+		 */
 		public function closeSubState():void
 		{
 			this.setSubState(null);
@@ -82,6 +114,8 @@ package org.flixel
 			_subState.destroy();
 			_subState.parentState = null;
 			_subState = null;
+			
+			this.updateMouseVisibility();
 		}
 		
 		
@@ -103,10 +137,15 @@ package org.flixel
 			if (_subState) { _subState.tryUpdate(); }
 		}
 		
+		//Moved drawing to inside of FlxGame
 		//ALWAYS draw the background state? Or is it better to only draw if if it's non-blocking?
 		public override function draw():void
 		{
+			//Background is already drawin inside of FlxCamera.lockCameras()
+			
+			//Now draw all children
 			super.draw();
+			
 			//If called in this order, draws the subState on top of the current state
 			if (_subState) { _subState.draw(); }
 		}

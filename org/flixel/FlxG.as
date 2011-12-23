@@ -1,5 +1,6 @@
 package org.flixel
 {
+	import org.flixel.plugin.FlxEffects;
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.display.Sprite;
@@ -180,6 +181,11 @@ package org.flixel
 		 * Internal helper variable for clearing the cameras each frame.
 		 */
 		static protected var _cameraRect:Rectangle;
+		
+		/**
+		 * Special effects such as flashing (moved to separate class for organizational purposes)
+		 */
+		static public var effects:FlxEffects;
 		
 		/**
 		 * An array container for plugins.
@@ -856,55 +862,6 @@ package org.flixel
 		}
 		
 		/**
-		 * All screens are filled with this color and gradually return to normal.
-		 * 
-		 * @param	Color		The color you want to use.
-		 * @param	Duration	How long it takes for the flash to fade.
-		 * @param	OnComplete	A function you want to run when the flash finishes.
-		 * @param	Force		Force the effect to reset.
-		 */
-		static public function flash(Color:uint=0xffffffff, Duration:Number=1, OnComplete:Function=null, Force:Boolean=false):void
-		{
-			var i:uint = 0;
-			var l:uint = FlxG.cameras.length;
-			while(i < l)
-				(FlxG.cameras[i++] as FlxCamera).flash(Color,Duration,OnComplete,Force);
-		}
-		
-		/**
-		 * The screen is gradually filled with this color.
-		 * 
-		 * @param	Color		The color you want to use.
-		 * @param	Duration	How long it takes for the fade to finish.
-		 * @param	OnComplete	A function you want to run when the fade finishes.
-		 * @param	Force		Force the effect to reset.
-		 */
-		static public function fade(Color:uint=0xff000000, Duration:Number=1, OnComplete:Function=null, Force:Boolean=false):void
-		{
-			var i:uint = 0;
-			var l:uint = FlxG.cameras.length;
-			while(i < l)
-				(FlxG.cameras[i++] as FlxCamera).fade(Color,Duration,OnComplete,Force);
-		}
-		
-		/**
-		 * A simple screen-shake effect.
-		 * 
-		 * @param	Intensity	Percentage of screen size representing the maximum distance that the screen can move while shaking.
-		 * @param	Duration	The length in seconds that the shaking effect should last.
-		 * @param	OnComplete	A function you want to run when the shake effect finishes.
-		 * @param	Force		Force the effect to reset (default = true, unlike flash() and fade()!).
-		 * @param	Direction	Whether to shake on both axes, just up and down, or just side to side (use class constants SHAKE_BOTH_AXES, SHAKE_VERTICAL_ONLY, or SHAKE_HORIZONTAL_ONLY).  Default value is SHAKE_BOTH_AXES (0).
-		 */
-		static public function shake(Intensity:Number=0.05, Duration:Number=0.5, OnComplete:Function=null, Force:Boolean=true, Direction:uint=0):void
-		{
-			var i:uint = 0;
-			var l:uint = FlxG.cameras.length;
-			while(i < l)
-				(FlxG.cameras[i++] as FlxCamera).shake(Intensity,Duration,OnComplete,Force,Direction);
-		}
-		
-		/**
 		 * Get and set the background color of the game.
 		 * Get functionality is equivalent to FlxG.camera.bgColor.
 		 * Set functionality sets the background color of all the current cameras.
@@ -1097,6 +1054,7 @@ package org.flixel
 			plugins = new Array();
 			addPlugin(new DebugPathDisplay());
 			addPlugin(new TimerManager());
+			effects = addPlugin(new FlxEffects()) as FlxEffects;
 			
 			FlxG.mouse = new Mouse(FlxG._game._mouse);
 			FlxG.keys = new Keyboard();

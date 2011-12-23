@@ -317,7 +317,7 @@ package org.flixel
 							_replayCallback = null;
 						}
 						else
-							FlxG.stopReplay();
+							FlxG.vcr.stopReplay();
 						break;
 					}
 				}
@@ -356,7 +356,7 @@ package org.flixel
 							_replayCallback = null;
 						}
 						else
-							FlxG.stopReplay();
+							FlxG.vcr.stopReplay();
 						break;
 					}
 				}
@@ -559,12 +559,12 @@ package org.flixel
 							_replayCallback = null;
 						}
 						else
-							FlxG.stopReplay();
+							FlxG.vcr.stopReplay();
 					}
 				}
 				if(_replaying && _replay.finished)
 				{
-					FlxG.stopReplay();
+					FlxG.vcr.stopReplay();
 					if(_replayCallback != null)
 					{
 						_replayCallback();

@@ -387,18 +387,18 @@ package org.flixel
 			var delta:Number;
 			var velocityDelta:Number;
 
-			velocityDelta = (FlxU.computeVelocity(angularVelocity,angularAcceleration,angularDrag,maxAngular) - angularVelocity)/2;
+			velocityDelta = (FlxM.computeVelocity(angularVelocity,angularAcceleration,angularDrag,maxAngular) - angularVelocity)/2;
 			angularVelocity += velocityDelta; 
 			angle += angularVelocity*FlxG.elapsed;
 			angularVelocity += velocityDelta;
 			
-			velocityDelta = (FlxU.computeVelocity(velocity.x,acceleration.x,drag.x,maxVelocity.x) - velocity.x)/2;
+			velocityDelta = (FlxM.computeVelocity(velocity.x,acceleration.x,drag.x,maxVelocity.x) - velocity.x)/2;
 			velocity.x += velocityDelta;
 			delta = velocity.x*FlxG.elapsed;
 			velocity.x += velocityDelta;
 			x += delta;
 			
-			velocityDelta = (FlxU.computeVelocity(velocity.y,acceleration.y,drag.y,maxVelocity.y) - velocity.y)/2;
+			velocityDelta = (FlxM.computeVelocity(velocity.y,acceleration.y,drag.y,maxVelocity.y) - velocity.y)/2;
 			velocity.y += velocityDelta;
 			delta = velocity.y*FlxG.elapsed;
 			velocity.y += velocityDelta;
@@ -491,7 +491,7 @@ package org.flixel
 			}
 			
 			path = Path;
-			pathSpeed = FlxU.abs(Speed);
+			pathSpeed = FlxM.abs(Speed);
 			_pathMode = Mode;
 			_pathRotate = AutoRotate;
 			_pathAutoStop = StopWhenFinished;
@@ -670,8 +670,8 @@ package org.flixel
 				}
 				else
 				{
-					pathAngle = FlxU.getAngle(_point,node);
-					FlxU.rotatePoint(0,pathSpeed,0,0,pathAngle,velocity);
+					pathAngle = FlxM.getAngle(_point,node);
+					FlxM.rotatePoint(0,pathSpeed,0,0,pathAngle,velocity);
 				}
 				
 				//then set object rotation if necessary

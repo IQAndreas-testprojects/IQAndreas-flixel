@@ -919,10 +919,10 @@ package org.flixel
 			}
 			
 			//Figure out what tiles we need to check against
-			var selectionX:int = FlxU.floor((Object.x - X)/_tileWidth);
-			var selectionY:int = FlxU.floor((Object.y - Y)/_tileHeight);
-			var selectionWidth:uint = selectionX + (FlxU.ceil(Object.width/_tileWidth)) + 1;
-			var selectionHeight:uint = selectionY + FlxU.ceil(Object.height/_tileHeight) + 1;
+			var selectionX:int = FlxM.floor((Object.x - X)/_tileWidth);
+			var selectionY:int = FlxM.floor((Object.y - Y)/_tileHeight);
+			var selectionWidth:uint = selectionX + (FlxM.ceil(Object.width/_tileWidth)) + 1;
+			var selectionHeight:uint = selectionY + FlxM.ceil(Object.height/_tileHeight) + 1;
 			
 			//Then bound these coordinates by the map edges
 			if(selectionX < 0)

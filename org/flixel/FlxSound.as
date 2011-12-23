@@ -188,7 +188,7 @@ package org.flixel
 			//Distance-based volume control
 			if(_target != null)
 			{
-				radial = FlxU.getDistance(new FlxPoint(_target.x,_target.y),new FlxPoint(x,y))/_radius;
+				radial = FlxM.getDistance(new FlxPoint(_target.x,_target.y),new FlxPoint(x,y))/_radius;
 				if(radial < 0) radial = 0;
 				if(radial > 1) radial = 1;
 				

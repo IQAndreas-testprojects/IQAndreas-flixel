@@ -342,7 +342,7 @@ package org.flixel
 		 */
 		static public function random():Number
 		{
-			return globalSeed = FlxU.srand(globalSeed);
+			return globalSeed = FlxM.srand(globalSeed);
 		}
 		
 		/**

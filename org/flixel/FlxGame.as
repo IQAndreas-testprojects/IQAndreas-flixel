@@ -778,7 +778,7 @@ package org.flixel
 			//draw white arrow
 			var halfWidth:uint = screenWidth/2;
 			var halfHeight:uint = screenHeight/2;
-			var helper:uint = FlxU.min(halfWidth,halfHeight)/3;
+			var helper:uint = FlxM.min(halfWidth,halfHeight)/3;
 			gfx.moveTo(halfWidth-helper,halfHeight-helper);
 			gfx.beginFill(0xffffff,0.65);
 			gfx.lineTo(halfWidth+helper,halfHeight);

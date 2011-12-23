@@ -453,14 +453,14 @@ package org.flixel
 			if(allowCollisions)
 			{
 				if(allowCollisions != ANY)
-					boundingBoxColor = FlxG.PINK;
+					boundingBoxColor = FlxColor.PINK;
 				if(immovable)
-					boundingBoxColor = FlxG.GREEN;
+					boundingBoxColor = FlxColor.GREEN;
 				else
-					boundingBoxColor = FlxG.RED;
+					boundingBoxColor = FlxColor.RED;
 			}
 			else
-				boundingBoxColor = FlxG.BLUE;
+				boundingBoxColor = FlxColor.BLUE;
 			gfx.lineStyle(1,boundingBoxColor,0.5);
 			gfx.lineTo(boundingBoxX+boundingBoxWidth,boundingBoxY);
 			gfx.lineTo(boundingBoxX+boundingBoxWidth,boundingBoxY+boundingBoxHeight);

@@ -64,33 +64,6 @@ package org.flixel
 		 * Debugger overlay layout preset: Large windows taking up right third of screen.
 		 */
 		static public const DEBUGGER_RIGHT:uint = 5;
-		
-		/**
-		 * Some handy color presets.  Less glaring than pure RGB full values.
-		 * Primarily used in the visual debugger mode for bounding box displays.
-		 * Red is used to indicate an active, movable, solid object.
-		 */
-		static public const RED:uint = 0xffff0012;
-		/**
-		 * Green is used to indicate solid but immovable objects.
-		 */
-		static public const GREEN:uint = 0xff00f225;
-		/**
-		 * Blue is used to indicate non-solid objects.
-		 */
-		static public const BLUE:uint = 0xff0090e9;
-		/**
-		 * Pink is used to indicate objects that are only partially solid, like one-way platforms.
-		 */
-		static public const PINK:uint = 0xfff01eff;
-		/**
-		 * White... for white stuff.
-		 */
-		static public const WHITE:uint = 0xffffffff;
-		/**
-		 * And black too.
-		 */
-		static public const BLACK:uint = 0xff000000;
 
 		/**
 		 * Internal tracker for game object.

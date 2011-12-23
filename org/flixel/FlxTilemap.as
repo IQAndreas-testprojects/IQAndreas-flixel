@@ -253,9 +253,9 @@ package org.flixel
 			}
 			
 			//create debug tiles for rendering bounding boxes on demand
-			_debugTileNotSolid = makeDebugTile(FlxG.BLUE);
-			_debugTilePartial = makeDebugTile(FlxG.PINK);
-			_debugTileSolid = makeDebugTile(FlxG.GREEN);
+			_debugTileNotSolid = makeDebugTile(FlxColor.BLUE);
+			_debugTilePartial = makeDebugTile(FlxColor.PINK);
+			_debugTileSolid = makeDebugTile(FlxColor.GREEN);
 			_debugRect = new Rectangle(0,0,_tileWidth,_tileHeight);
 			
 			//Then go through and create the actual map

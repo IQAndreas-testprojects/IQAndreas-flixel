@@ -254,9 +254,13 @@ package org.flixel
 		 */
 		protected var _pathInc:int;
 		/**
-		 * Internal flag for whether hte object's angle should be adjusted to the path angle during path follow behavior.
+		 * Internal flag for whether the object's angle should be adjusted to the path angle during path follow behavior.
 		 */
 		protected var _pathRotate:Boolean;
+		/**
+		 * Internal flag for whether the object's should stop once it has reached the end of the path.
+		 */
+		protected var _pathAutoStop:Boolean;
 		
 		/**
 		 * Instantiates a <code>FlxObject</code>.
@@ -275,6 +279,8 @@ package org.flixel
 			height = Height;
 			mass = 1.0;
 			elasticity = 0.0;
+			
+			health = 1;
 
 			immovable = false;
 			moves = true;
@@ -474,8 +480,9 @@ package org.flixel
 		 * @param	Speed		How fast to travel along the path in pixels per second.
 		 * @param	Mode		Optional, controls the behavior of the object following the path using the path behavior constants.  Can use multiple flags at once, for example PATH_YOYO|PATH_HORIZONTAL_ONLY will make an object move back and forth along the X axis of the path only.
 		 * @param	AutoRotate	Automatically point the object toward the next node.  Assumes the graphic is pointing upward.  Default behavior is false, or no automatic rotation.
+		 * @param	StopWhenFinished	Automatically stop the player from moving once they have reached the final node in the path. Default is "false" just so it won't conflict with code written for previous versions.
 		 */
-		public function followPath(Path:FlxPath,Speed:Number=100,Mode:uint=PATH_FORWARD,AutoRotate:Boolean=false):void
+		public function followPath(Path:FlxPath,Speed:Number=100,Mode:uint=PATH_FORWARD,AutoRotate:Boolean=false,StopWhenFinished:Boolean=false):void
 		{
 			if(Path.nodes.length <= 0)
 			{
@@ -487,6 +494,7 @@ package org.flixel
 			pathSpeed = FlxU.abs(Speed);
 			_pathMode = Mode;
 			_pathRotate = AutoRotate;
+			_pathAutoStop = StopWhenFinished;
 			
 			//get starting node
 			if((_pathMode == PATH_BACKWARD) || (_pathMode == PATH_LOOP_BACKWARD))
@@ -506,9 +514,16 @@ package org.flixel
 		 * 
 		 * @param	DestroyPath		Tells this function whether to call destroy on the path object.  Default value is false.
 		 */
-		public function stopFollowingPath(DestroyPath:Boolean=false):void
+		public function stopFollowingPath(DestroyPath:Boolean=false,StopMoving:Boolean=false):void
 		{
 			pathSpeed = 0;
+			
+			if (StopMoving)
+			{
+				velocity.x = 0;
+				velocity.y = 0;
+			}
+			
 			if(DestroyPath && (path != null))
 			{
 				path.destroy();
@@ -542,7 +557,7 @@ package org.flixel
 				if(_pathNodeIndex < 0)
 				{
 					_pathNodeIndex = 0;
-					pathSpeed = 0;
+					stopFollowingPath(false, _pathAutoStop);
 				}
 			}
 			else if((_pathMode & PATH_LOOP_FORWARD) > 0)
@@ -586,7 +601,7 @@ package org.flixel
 				if(_pathNodeIndex >= path.nodes.length)
 				{
 					_pathNodeIndex = path.nodes.length-1;
-					pathSpeed = 0;
+					stopFollowingPath(false, _pathAutoStop);
 				}
 			}
 

@@ -166,8 +166,6 @@ package org.flixel
 		public function FlxSprite(X:Number=0,Y:Number=0,SimpleGraphic:Class=null)
 		{
 			super(X,Y);
-			
-			health = 1;
 
 			_flashPoint = new Point();
 			_flashRect = new Rectangle();
@@ -630,7 +628,7 @@ package org.flixel
 		 */
 		public function play(AnimName:String,Force:Boolean=false):void
 		{
-			if(!Force && (_curAnim != null) && (AnimName == _curAnim.name) && (_curAnim.looped || !finished)) return;
+			if(!Force && (_curAnim != null) && (AnimName == _curAnim.name) && (!_curAnim.looped || !finished)) return;
 			_curFrame = 0;
 			_curIndex = 0;
 			_frameTimer = 0;

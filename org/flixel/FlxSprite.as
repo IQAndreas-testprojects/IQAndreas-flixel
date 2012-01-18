@@ -321,7 +321,7 @@ package org.flixel
 			height = max*rows;
 			var key:String = String(Graphic) + ":" + Frame + ":" + width + "x" + height;
 			var skipGen:Boolean = FlxG.checkBitmapCache(key);
-			_pixels = FlxG.createBitmap(width, height, 0, true, key);
+			_pixels = FlxG.createEmptyBitmap(width, height, 0, true, key);
 			width = frameWidth = _pixels.width;
 			height = frameHeight = _pixels.height;
 			_bakedRotation = 360/Rotations;
@@ -378,7 +378,7 @@ package org.flixel
 		public function makeGraphic(Width:uint,Height:uint,Color:uint=0xffffffff,Unique:Boolean=false,Key:String=null):FlxSprite
 		{
 			_bakedRotation = 0;
-			_pixels = FlxG.createBitmap(Width,Height,Color,Unique,Key);
+			_pixels = FlxG.createEmptyBitmap(Width,Height,Color,Unique,Key);
 			width = frameWidth = _pixels.width;
 			height = frameHeight = _pixels.height;
 			resetHelpers();

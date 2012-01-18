@@ -700,7 +700,7 @@ package org.flixel {
 		 * 
 		 * @return	The <code>BitmapData</code> we just created.
 		 */
-		static public function createBitmap(Width:uint, Height:uint, Color:uint, Unique:Boolean=false, Key:String=null):BitmapData
+		static public function createEmptyBitmap(Width:uint, Height:uint, Color:uint, Unique:Boolean=false, Key:String=null):BitmapData
 		{
 			if(Key == null)
 			{

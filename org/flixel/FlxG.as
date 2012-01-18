@@ -672,6 +672,23 @@ package org.flixel
 			return (_cache[Key] != undefined) && (_cache[Key] != null);
 		}
 		
+		// Is ASDoc neccessary for private static functions?
+		// Is it better to make this function public?
+		static private function getUniqueBitmapCacheKey(Prefix:String):String
+		{
+			//No need to append an id number if the key is alredy unique
+			if (!checkBitmapCache(ukey))
+				{ return Prefix; }
+			
+			var inc:uint = 0;
+			do
+			{
+				var ukey:String = Prefix + String(inc++);
+			} while(checkBitmapCache(ukey));
+			
+			return ukey;
+		}
+		
 		/**
 		 * Generates a new <code>BitmapData</code> object (a colored square) and caches it.
 		 * 
@@ -688,15 +705,9 @@ package org.flixel
 			if(Key == null)
 			{
 				Key = Width+"x"+Height+":"+Color;
-				if(Unique && checkBitmapCache(Key))
+				if(Unique)
 				{
-					var inc:uint = 0;
-					var ukey:String;
-					do
-					{
-						ukey = Key + inc++;
-					} while(checkBitmapCache(ukey));
-					Key = ukey;
+					Key = getUniqueBitmapCacheKey(Key);
 				}
 			}
 			if(!checkBitmapCache(Key))
@@ -720,15 +731,9 @@ package org.flixel
 			if(Key == null)
 			{
 				Key = String(Graphic)+(Reverse?"_REVERSE_":"");
-				if(Unique && checkBitmapCache(Key))
+				if(Unique)
 				{
-					var inc:uint = 0;
-					var ukey:String;
-					do
-					{
-						ukey = Key + inc++;
-					} while(checkBitmapCache(ukey));
-					Key = ukey;
+					Key = getUniqueBitmapCacheKey(Key);
 				}
 			}
 			

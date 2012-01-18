@@ -1,5 +1,5 @@
-package org.flixel
-{
+package org.flixel {
+	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.display.Sprite;
@@ -718,14 +718,14 @@ package org.flixel
 		/**
 		 * Loads a bitmap from a file, caches it, and generates a horizontally flipped version if necessary.
 		 * 
-		 * @param	Graphic		The image file that you want to load.
+		 * @param	Graphic		The image file that you want to load, or the instance of the Bitmap or BitmapData object.
 		 * @param	Reverse		Whether to generate a flipped version.
 		 * @param	Unique		Ensures that the bitmap data uses a new slot in the cache.
 		 * @param	Key			Force the cache to use a specific Key to index the bitmap.
 		 * 
 		 * @return	The <code>BitmapData</code> we just created.
 		 */
-		static public function addBitmap(Graphic:Class, Reverse:Boolean=false, Unique:Boolean=false, Key:String=null):BitmapData
+		static public function addBitmap(Graphic:*, Reverse:Boolean=false, Unique:Boolean=false, Key:String=null):BitmapData
 		{
 			var needReverse:Boolean = false;
 			if(Key == null)
@@ -737,19 +737,32 @@ package org.flixel
 				}
 			}
 			
-			//If there is no data for this key, generate the requested graphic
-			if(!checkBitmapCache(Key))
+			var pixels:BitmapData;
+			if (checkBitmapCache(Key))
 			{
-				_cache[Key] = (new Graphic).bitmapData;
+				pixels = _cache[Key];
+			}
+			else
+			{
+				pixels = getBitmapData(Graphic);
+				if (!pixels)
+				{
+					FlxG.log("ERROR: Invalid Graphic passed to FlxG.addBitmap()");
+					return;
+				}
+				
+				_cache[Key] = pixels;
+				
 				if(Reverse)
 					needReverse = true;
 			}
-			var pixels:BitmapData = _cache[Key];
-			if(!needReverse && Reverse && (pixels.width == (new Graphic).bitmapData.width))
+			
+			
+			if(!needReverse && Reverse && (pixels.width == getBitmapData(Graphic).width))
 				needReverse = true;
 			if(needReverse)
 			{
-				var newPixels:BitmapData = new BitmapData(pixels.width<<1,pixels.height,true,0x00000000);
+				var newPixels:BitmapData = new BitmapData(pixels.width*2,pixels.height,true,0x00000000);
 				newPixels.draw(pixels);
 				var mtx:Matrix = new Matrix();
 				mtx.scale(-1,1);
@@ -759,6 +772,45 @@ package org.flixel
 				_cache[Key] = pixels;
 			}
 			return pixels;
+		}
+		
+		// Should it clone bitmapData to avoid references?
+		private static function getBitmapData(Graphic:*):BitmapData
+		{
+			if (Graphic == null)
+			{
+				return null;
+			}
+			else if (Graphic is Class)
+			{
+				//Avoid errors in case the Graphic requires parameters etc
+				try
+				{
+					var instance:* = new Graphic();
+					return getBitmapData(instance);
+				}
+				catch (error:Error)
+				{
+					return null;
+				}
+			}
+			else if (Graphic is Bitmap)
+			{
+				return Bitmap(Graphic).bitmapData;
+			}
+			else if (Graphic is BitmapData)
+			{
+				return Graphic as BitmapData;
+			}
+			else if (Graphic.hasOwnProperty('bitmapData'))
+			{
+				//Theoretically, allow any class that has a "bitmapData" property
+				//Will return 'null' if not of type BitmapData
+				return Graphic.bitmapData as BitmapData;
+			}
+			
+			//else
+			return null;
 		}
 		
 		/**

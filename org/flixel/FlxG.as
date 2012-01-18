@@ -1,4 +1,7 @@
 package org.flixel {
+	import flash.display.IBitmapDrawable;
+	import flash.utils.getQualifiedClassName;
+	import flash.display.DisplayObject;
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
@@ -687,6 +690,52 @@ package org.flixel {
 			} while(checkBitmapCache(ukey));
 			
 			return ukey;
+		}
+		
+		/**
+		 * Generates a new <code>BitmapData</code> from a spcified DisplayObject (or at least IBitmapDrawable object) and caches it.
+		 * 
+		 * Since DisplayObjects are constantly dynamic and changing, this function will always consider it "unique" and generate a new instance.
+		 * 
+		 * Ignores all rotation, translation, or scaling applied to the displayObject. Wrap the displayObject in another containr and pass this function the container to preserve those modifications.
+		 * 
+		 * @param	registrationTopLeft If set to 'false' (the default) parts of the displayObject on the "negative" side of the x or y axis will be "cut off". If set to true, the displayObject will be moved so the top left corner is the registration point of the displayObject before being drawn to the BitmapData.
+		 * @param	backgroundColor	What background color the Bitmap should have (0xAARRGGBB). Default is completely transparent.
+		 * @param	Width	How wide the square should be (defaults to the width of the displayObject).
+		 * @param	Height	How high the square should be (defaults to the height of the displayObject).
+		 * @param	Key		Force the cache to use a specific Key to index the bitmap.
+		 * 
+		 * @return	The <code>BitmapData</code> we just created.
+		 */
+		static public function createBitmap(displayObject:DisplayObject, registrationTopLeft:Boolean = false, backgroundColor:uint = 0x00000000, Width:uint = 0, Height:uint = 0, Key:String=null):BitmapData
+		{
+			if (!displayObject)
+			{
+				FlxG.log("ERROR: Invalid DisplayObject passed to 'FlxG.createBitmap()'");	
+				return null;
+			}
+			
+			var visibleRect:Rectangle = displayObject.getBounds(displayObject);
+			if (!registrationTopLeft) 
+			{ 
+				visibleRect = visibleRect.intersection(new Rectangle(0, 0, displayObject.width, displayObject.height)); 
+			}
+			
+			if (Width == 0)
+			{
+				Width = visibleRect.width;
+			}
+			if (Height == 0)
+			{
+				Height = visibleRect.height;
+			}
+			
+			var pixels:BitmapData = createEmptyBitmap(Width,Height,backgroundColor);
+			pixels.draw(displayObject, registrationTopLeft ? (new Matrix(1, 0, 1, 0, visibleRect.left, visibleRect.top)) : null);
+			
+			Key = getUniqueBitmapCacheKey( (Key) ? Key : getQualifiedClassName(displayObject) );
+			_cache[Key] = pixels;
+			return pixels;
 		}
 		
 		/**

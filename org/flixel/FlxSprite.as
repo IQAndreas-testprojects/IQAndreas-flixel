@@ -248,6 +248,12 @@ package org.flixel
 		{
 			_bakedRotation = 0;
 			_pixels = FlxG.addBitmap(Graphic,Reverse,Unique);
+			if (!_pixels)
+			{
+				FlxG.log("ERROR: Invalid Graphic passed to FlxSprite::loadGraphic()");
+				return this;
+			}
+			
 			if(Reverse)
 				_flipped = _pixels.width>>1;
 			else
@@ -291,6 +297,12 @@ package org.flixel
 			//Create the brush and canvas
 			var rows:uint = Math.sqrt(Rotations);
 			var brush:BitmapData = FlxG.addBitmap(Graphic);
+			if (!brush)
+			{
+				FlxG.log("ERROR: Invalid Graphic passed to FlxSprite::loadRotatedGraphic()");
+				return this;
+			}
+			
 			if(Frame >= 0)
 			{
 				//Using just a segment of the graphic - find the right bit here

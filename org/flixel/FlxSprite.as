@@ -281,6 +281,62 @@ package org.flixel
 		}
 		
 		/**
+		 * Load an image from an array of graphics.
+		 * 
+		 * @param	Graphic		Array of different images that will merge together
+		 * @param	Reverse		Whether you need this class to generate horizontally flipped versions of the animation frames.
+		 * @param	Width		Optional, specify the width of your sprite (helps FlxSprite figure out what to do with non-square sprites or sprite sheets).
+		 * @param	Height		Optional, specify the height of your sprite (helps FlxSprite figure out what to do with non-square sprites or sprite sheets).
+		 * @param	Unique		Optional, whether the graphic should be a unique instance in the graphics cache.  Default is false.
+		 * 
+		 * @return	This FlxSprite instance (nice for chaining stuff together, if you're into that).
+		 */
+		public function loadGraphics(GraphicFrames:Array, Reverse:Boolean=false, Width:uint=0, Height:uint=0, Unique:Boolean=false):FlxSprite 
+		{   
+			_bakedRotation = 0;
+
+			var tmpBData:BitmapData = FlxG.addBitmap(GraphicFrames[0], Reverse, Unique);
+			var tmpPixels:BitmapData = new BitmapData(tmpBData.width * GraphicFrames.length, tmpBData.height);
+			tmpPixels.copyPixels(tmpBData, new Rectangle(0, 0, tmpBData.width, tmpBData. height), new Point(0, 0), null, null, true);
+			
+			for(var i:uint = 1; i < GraphicFrames.length;i++) 
+			{
+				tmpBData = FlxG.addBitmap(GraphicFrames[i], Reverse, Unique);
+				tmpPixels.copyPixels(tmpBData, new Rectangle(0, 0, tmpBData.width, tmpBData. height), new Point(tmpBData.width*i, 0), null, null, true);
+			}
+			
+			_pixels = tmpPixels;
+			
+			if(Reverse)
+				_flipped = _pixels.width/2;
+			else
+				_flipped = 0;
+			
+			if(Width == 0) 
+			{   
+				if(Animated)
+					Width = _pixels.height;
+				else if(_flipped > 0)
+					Width = _pixels.width*0.5;
+				else
+					Width = _pixels.width;
+			}
+			width = frameWidth = Width;
+			
+			if(Height == 0) 
+			{   
+				if(Animated)
+					Height = width;
+				else
+					Height = _pixels.height;
+			}
+			height = frameHeight = Height;
+			
+			resetHelpers();
+			return this;
+		}  	
+		
+		/**
 		 * Create a pre-rotated sprite sheet from a simple sprite.
 		 * This can make a huge difference in graphical performance!
 		 * 

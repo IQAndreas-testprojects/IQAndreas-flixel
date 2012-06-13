@@ -266,11 +266,17 @@ package org.flixel.system.input
 			var key:Key = _map[KeyCode];
 			if(key == null) return;
 			
-			// Since "keys.update()" happens before "state.update()", 
-			// the `+1` here is to compensate so that things happening
-			// on the "same frame" (like "justPressed") line up properly.
-			key.framePressed = _currentFrame + 1;
-			this[key.name] = true;
+			// Avoid difference in Linux player that "repeats keys" when 
+			// holding them down long enough.
+			// Note that this does not affect Windows (haven't tested MAC)
+			if (key.framePressed <= 0)
+			{
+				// Since "keys.update()" happens before "state.update()", 
+				// the `+1` here is to compensate so that things happening
+				// on the "same frame" (like "justPressed") line up properly.
+				key.framePressed = _currentFrame + 1;
+				this[key.name] = true;
+			}
 		}
 		
 		//Not actually more efficient, but definitely more organized

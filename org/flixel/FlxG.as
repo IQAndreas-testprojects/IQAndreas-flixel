@@ -7,12 +7,15 @@ package org.flixel
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
-	
 	import org.flixel.plugin.DebugPathDisplay;
+	import org.flixel.plugin.FlxEffects;
 	import org.flixel.plugin.TimerManager;
 	import org.flixel.system.FlxDebugger;
 	import org.flixel.system.FlxQuadTree;
-	import org.flixel.system.input.*;
+	import org.flixel.system.input.Input;
+	import org.flixel.system.input.Keyboard;
+	import org.flixel.system.input.Mouse;
+	
 	
 	/**
 	 * This is a global helper class full of useful functions for audio,
@@ -64,33 +67,6 @@ package org.flixel
 		 * Debugger overlay layout preset: Large windows taking up right third of screen.
 		 */
 		static public const DEBUGGER_RIGHT:uint = 5;
-		
-		/**
-		 * Some handy color presets.  Less glaring than pure RGB full values.
-		 * Primarily used in the visual debugger mode for bounding box displays.
-		 * Red is used to indicate an active, movable, solid object.
-		 */
-		static public const RED:uint = 0xffff0012;
-		/**
-		 * Green is used to indicate solid but immovable objects.
-		 */
-		static public const GREEN:uint = 0xff00f225;
-		/**
-		 * Blue is used to indicate non-solid objects.
-		 */
-		static public const BLUE:uint = 0xff0090e9;
-		/**
-		 * Pink is used to indicate objects that are only partially solid, like one-way platforms.
-		 */
-		static public const PINK:uint = 0xfff01eff;
-		/**
-		 * White... for white stuff.
-		 */
-		static public const WHITE:uint = 0xffffffff;
-		/**
-		 * And black too.
-		 */
-		static public const BLACK:uint = 0xff000000;
 
 		/**
 		 * Internal tracker for game object.
@@ -214,6 +190,16 @@ package org.flixel
 		 * DebugPathDisplay, and TimerManager.
 		 */
 		 static public var plugins:Array;
+		
+		/**
+		 * Special effects such as flashing (moved to separate class for organizational purposes)
+		 */
+		static public var effects:FlxEffects;
+		
+		/**
+		 * Used for recording and playing back games (moved to separate class for organizational purposes)
+		 */
+		static public var vcr:FlxVCR;
 		 
 		/**
 		 * Set this hook to get a callback whenever the volume changes.
@@ -342,7 +328,7 @@ package org.flixel
 		 */
 		static public function random():Number
 		{
-			return globalSeed = FlxU.srand(globalSeed);
+			return globalSeed = FlxM.srand(globalSeed);
 		}
 		
 		/**
@@ -398,80 +384,6 @@ package org.flixel
 			return null;
 		}
 		
-		/**
-		 * Load replay data from a string and play it back.
-		 * 
-		 * @param	Data		The replay that you want to load.
-		 * @param	State		Optional parameter: if you recorded a state-specific demo or cutscene, pass a new instance of that state here.
-		 * @param	CancelKeys	Optional parameter: an array of string names of keys (see FlxKeyboard) that can be pressed to cancel the playback, e.g. ["ESCAPE","ENTER"].  Also accepts 2 custom key names: "ANY" and "MOUSE" (fairly self-explanatory I hope!).
-		 * @param	Timeout		Optional parameter: set a time limit for the replay.  CancelKeys will override this if pressed.
-		 * @param	Callback	Optional parameter: if set, called when the replay finishes.  Running to the end, CancelKeys, and Timeout will all trigger Callback(), but only once, and CancelKeys and Timeout will NOT call FlxG.stopReplay() if Callback is set!
-		 */
-		static public function loadReplay(Data:String,State:FlxState=null,CancelKeys:Array=null,Timeout:Number=0,Callback:Function=null):void
-		{
-			_game._replay.load(Data);
-			if(State == null)
-				FlxG.resetGame();
-			else
-				FlxG.switchState(State);
-			_game._replayCancelKeys = CancelKeys;
-			_game._replayTimer = Timeout*1000;
-			_game._replayCallback = Callback;
-			_game._replayRequested = true;
-		}
-		
-		/**
-		 * Resets the game or state and replay requested flag.
-		 * 
-		 * @param	StandardMode	If true, reload entire game, else just reload current game state.
-		 */
-		static public function reloadReplay(StandardMode:Boolean=true):void
-		{
-			if(StandardMode)
-				FlxG.resetGame();
-			else
-				FlxG.resetState();
-			if(_game._replay.frameCount > 0)
-				_game._replayRequested = true;
-		}
-		
-		/**
-		 * Stops the current replay.
-		 */
-		static public function stopReplay():void
-		{
-			_game._replaying = false;
-			if(_game._debugger != null)
-				_game._debugger.vcr.stopped();
-			resetInput();
-		}
-		
-		/**
-		 * Resets the game or state and requests a new recording.
-		 * 
-		 * @param	StandardMode	If true, reset the entire game, else just reset the current state.
-		 */
-		static public function recordReplay(StandardMode:Boolean=true):void
-		{
-			if(StandardMode)
-				FlxG.resetGame();
-			else
-				FlxG.resetState();
-			_game._recordingRequested = true;
-		}
-		
-		/**
-		 * Stop recording the current replay and return the replay data.
-		 * 
-		 * @return	The replay data in simple ASCII format (see <code>FlxReplay.save()</code>).
-		 */
-		static public function stopRecording():String
-		{
-			_game._recording = false;
-			if(_game._debugger != null)
-				_game._debugger.vcr.stopped();
-			return _game._replay.save();
-		}
 		
 		/**
 		 * Request a reset of the current game state.
@@ -883,55 +795,6 @@ package org.flixel
 		}
 		
 		/**
-		 * All screens are filled with this color and gradually return to normal.
-		 * 
-		 * @param	Color		The color you want to use.
-		 * @param	Duration	How long it takes for the flash to fade.
-		 * @param	OnComplete	A function you want to run when the flash finishes.
-		 * @param	Force		Force the effect to reset.
-		 */
-		static public function flash(Color:uint=0xffffffff, Duration:Number=1, OnComplete:Function=null, Force:Boolean=false):void
-		{
-			var i:uint = 0;
-			var l:uint = FlxG.cameras.length;
-			while(i < l)
-				(FlxG.cameras[i++] as FlxCamera).flash(Color,Duration,OnComplete,Force);
-		}
-		
-		/**
-		 * The screen is gradually filled with this color.
-		 * 
-		 * @param	Color		The color you want to use.
-		 * @param	Duration	How long it takes for the fade to finish.
-		 * @param	OnComplete	A function you want to run when the fade finishes.
-		 * @param	Force		Force the effect to reset.
-		 */
-		static public function fade(Color:uint=0xff000000, Duration:Number=1, OnComplete:Function=null, Force:Boolean=false):void
-		{
-			var i:uint = 0;
-			var l:uint = FlxG.cameras.length;
-			while(i < l)
-				(FlxG.cameras[i++] as FlxCamera).fade(Color,Duration,OnComplete,Force);
-		}
-		
-		/**
-		 * A simple screen-shake effect.
-		 * 
-		 * @param	Intensity	Percentage of screen size representing the maximum distance that the screen can move while shaking.
-		 * @param	Duration	The length in seconds that the shaking effect should last.
-		 * @param	OnComplete	A function you want to run when the shake effect finishes.
-		 * @param	Force		Force the effect to reset (default = true, unlike flash() and fade()!).
-		 * @param	Direction	Whether to shake on both axes, just up and down, or just side to side (use class constants SHAKE_BOTH_AXES, SHAKE_VERTICAL_ONLY, or SHAKE_HORIZONTAL_ONLY).  Default value is SHAKE_BOTH_AXES (0).
-		 */
-		static public function shake(Intensity:Number=0.05, Duration:Number=0.5, OnComplete:Function=null, Force:Boolean=true, Direction:uint=0):void
-		{
-			var i:uint = 0;
-			var l:uint = FlxG.cameras.length;
-			while(i < l)
-				(FlxG.cameras[i++] as FlxCamera).shake(Intensity,Duration,OnComplete,Force,Direction);
-		}
-		
-		/**
 		 * Get and set the background color of the game.
 		 * Get functionality is equivalent to FlxG.camera.bgColor.
 		 * Set functionality sets the background color of all the current cameras.
@@ -1121,9 +984,12 @@ package org.flixel
 			FlxG.cameras = new Array();
 			useBufferLocking = false;
 			
+			FlxG.vcr = new FlxVCR(_game);
+			
 			plugins = new Array();
 			addPlugin(new DebugPathDisplay());
 			addPlugin(new TimerManager());
+			FlxG.effects = addPlugin(new FlxEffects()) as FlxEffects;
 			
 			FlxG.mouse = new Mouse(FlxG._game._mouse);
 			FlxG.keys = new Keyboard();

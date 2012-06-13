@@ -10,7 +10,7 @@ package org.flixel.system
 	import flash.text.TextField;
 	import flash.text.TextFormat;
 	
-	import org.flixel.FlxU;
+	import org.flixel.FlxM;
 	
 	/**
 	 * A generic, Flash-based window class, created for use in <code>FlxDebugger</code>.
@@ -282,8 +282,8 @@ package org.flixel.system
 		{
 			if(_bounds != null)
 			{
-				x = FlxU.bound(x,_bounds.left,_bounds.right-_width);
-				y = FlxU.bound(y,_bounds.top,_bounds.bottom-_height);
+				x = FlxM.bound(x,_bounds.left,_bounds.right-_width);
+				y = FlxM.bound(y,_bounds.top,_bounds.bottom-_height);
 			}
 		}
 		
@@ -292,8 +292,8 @@ package org.flixel.system
 		 */
 		protected function updateSize():void
 		{
-			_width = FlxU.bound(_width,minSize.x,maxSize.x);
-			_height = FlxU.bound(_height,minSize.y,maxSize.y);
+			_width = FlxM.bound(_width,minSize.x,maxSize.x);
+			_height = FlxM.bound(_height,minSize.y,maxSize.y);
 			
 			_header.scaleX = _width;
 			_background.scaleX = _width;

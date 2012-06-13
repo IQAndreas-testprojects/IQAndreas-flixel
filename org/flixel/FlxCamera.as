@@ -387,11 +387,11 @@ package org.flixel
 					deadzone = new FlxRect((width-w)/2,(height-h)/2 - h*0.25,w,h);
 					break;
 				case STYLE_TOPDOWN:
-					helper = FlxU.max(width,height)/4;
+					helper = FlxM.max(width,height)/4;
 					deadzone = new FlxRect((width-helper)/2,(height-helper)/2,helper,helper);
 					break;
 				case STYLE_TOPDOWN_TIGHT:
-					helper = FlxU.max(width,height)/8;
+					helper = FlxM.max(width,height)/8;
 					deadzone = new FlxRect((width-helper)/2,(height-helper)/2,helper,helper);
 					break;
 				case STYLE_LOCKON:

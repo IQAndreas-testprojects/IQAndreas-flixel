@@ -235,9 +235,9 @@ package org.flixel
 				if(l > 1)
 				{
 					if(i == 0)
-						nodeColor = FlxG.GREEN;
+						nodeColor = FlxColor.GREEN;
 					else if(i == l-1)
-						nodeColor = FlxG.RED;
+						nodeColor = FlxColor.RED;
 				}
 				
 				//draw a box for the node

@@ -314,7 +314,7 @@ package org.flixel
 				max = brush.height;
 			if(AutoBuffer)
 				max *= 1.5;
-			var columns:uint = FlxU.ceil(Rotations/rows);
+			var columns:uint = FlxM.ceil(Rotations/rows);
 			width = max*columns;
 			height = max*rows;
 			var key:String = String(Graphic) + ":" + Frame + ":" + width + "x" + height;

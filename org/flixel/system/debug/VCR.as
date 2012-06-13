@@ -271,7 +271,7 @@ package org.flixel.system.debug
 				return;
 			}
 			
-			FlxG.loadReplay(fileContents);
+			FlxG.vcr.loadReplay(fileContents);
 		}
 		
 		/**
@@ -310,7 +310,7 @@ package org.flixel.system.debug
 		{
 			if(_play.visible)
 				onPlay();
-			FlxG.recordReplay(StandardMode);
+			FlxG.vcr.recordReplay(StandardMode);
 		}
 		
 		/**
@@ -319,7 +319,7 @@ package org.flixel.system.debug
 		 */
 		public function stopRecording():void
 		{
-			var data:String = FlxG.stopRecording();
+			var data:String = FlxG.vcr.stopRecording();
 			if((data != null) && (data.length > 0))
 			{
 				_file = new FileReference();
@@ -377,7 +377,7 @@ package org.flixel.system.debug
 		 */
 		public function onStop():void
 		{
-			FlxG.stopReplay();
+			FlxG.vcr.stopReplay();
 		}
 		
 		/**
@@ -390,7 +390,7 @@ package org.flixel.system.debug
 		 */
 		public function onRestart(StandardMode:Boolean=false):void
 		{
-			if(FlxG.reloadReplay(StandardMode))
+			if(FlxG.vcr.reloadReplay(StandardMode))
 			{
 				_recordOff.visible = false;
 				_recordOn.visible = false;

@@ -266,7 +266,10 @@ package org.flixel.system.input
 			var key:Key = _map[KeyCode];
 			if(key == null) return;
 			
-			key.framePressed = _currentFrame;
+			// Since "keys.update()" happens before "state.update()", 
+			// the `+1` here is to compensate so that things happening
+			// on the "same frame" (like "justPressed") line up properly.
+			key.framePressed = _currentFrame + 1;
 			this[key.name] = true;
 		}
 		
@@ -276,7 +279,8 @@ package org.flixel.system.input
 			var key:Key = _map[KeyCode];
 			if(key == null) return;
 			
-			key.framePressed = -_currentFrame;
+			// See "setKeyPress" for reasoning behind `-1`
+			key.framePressed = -_currentFrame - 1;
 			this[key.name] = false;
 		}
 		

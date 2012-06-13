@@ -632,7 +632,11 @@ package org.flixel
 			FlxG.elapsed = FlxG.timeScale*(_step/1000);
 			FlxG.updateSounds();
 			FlxG.updatePlugins();
-			_state.update();
+			
+			//Modified this line to allow subStates
+			//_state.update();
+			_state.tryUpdate();
+			
 			FlxG.updateCameras();
 			
 			if(_debuggerUp)

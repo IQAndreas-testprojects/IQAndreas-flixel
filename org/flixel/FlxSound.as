@@ -6,8 +6,14 @@ package org.flixel
 	import flash.media.SoundTransform;
 	import flash.net.URLRequest;
 	
+	import flash.events.SampleDataEvent;
+	import flash.utils.ByteArray;
+
+	
 	/**
 	 * This is the universal flixel sound object, used for streaming, music, and sound effects.
+	 * 
+	 * EMBEDDED SEAMLESS LOOPING MODIFICATION BY MAX "GETI" CAHILL.
 	 */
 	public class FlxSound extends FlxObject
 	{
@@ -28,8 +34,23 @@ package org.flixel
 		 */
 		public var artist:String;
 		
+		/*
+		 * A bunch of looping variables follow.
+		 */
+		protected const MAGIC_DELAY:Number = 2766.0; 	//THE MAGIC NUMBER
+		protected const bufferSize:int = 4096;			//this gives stable playback
+		protected var samplesTotal:int = 0;				//this _must_ be known about the song to be looped
+		protected var samplesPosition:int = 0;			//helper for reading the sound
+		
+		protected var _streaming:Boolean;				//whether we're streaming the audio or not
+		
+		/*
+		 * The default FlxSound variables
+		 */
+		
 		protected var _init:Boolean;
 		protected var _sound:Sound;
+		protected var _in:Sound;
 		protected var _channel:SoundChannel;
 		protected var _transform:SoundTransform;
 		protected var _position:Number;
@@ -65,6 +86,7 @@ package org.flixel
 		{
 			_transform.pan = 0;
 			_sound = null;
+			_in = null;
 			_position = 0;
 			_volume = 1.0;
 			_volumeAdjust = 1.0;
@@ -90,15 +112,24 @@ package org.flixel
 		 * 
 		 * @param	EmbeddedSound	An embedded Class object representing an MP3 file.
 		 * @param	Looped			Whether or not this sound should loop endlessly.
+		 * @param	totalSamples	If looped is true, the number of samples is needed.
 		 * 
 		 * @return	This <code>FlxSound</code> instance (nice for chaining stuff together, if you're into that).
 		 */
-		public function loadEmbedded(EmbeddedSound:Class, Looped:Boolean=false):FlxSound
+		public function loadEmbedded(EmbeddedSound:Class, Looped:Boolean=false, totalSamples:int = 0):FlxSound
 		{
 			stop();
 			init();
-			_sound = new EmbeddedSound();
+			if (Looped)
+			{
+				_in = new EmbeddedSound;
+				_sound = new Sound();
+				_sound.addEventListener( SampleDataEvent.SAMPLE_DATA, sampleData );
+				samplesTotal = totalSamples - MAGIC_DELAY; //prevents any delay at the end of the track as well.
+			}
+			else _sound = new EmbeddedSound;
 			//NOTE: can't pull ID3 info from embedded sound currently
+			_streaming = false;
 			_looped = Looped;
 			updateTransform();
 			active = true;
@@ -120,6 +151,7 @@ package org.flixel
 			_sound = new Sound();
 			_sound.addEventListener(Event.ID3, gotID3);
 			_sound.load(new URLRequest(SoundURL));
+			_streaming = true;
 			_looped = Looped;
 			updateTransform();
 			active = true;
@@ -156,7 +188,7 @@ package org.flixel
 				return;
 			if(_looped)
 			{
-				if(_position == 0)
+				if (!_streaming)
 				{
 					if(_channel == null)
 						_channel = _sound.play(0,9999,_transform);
@@ -165,11 +197,21 @@ package org.flixel
 				}
 				else
 				{
-					_channel = _sound.play(_position,0,_transform);
-					if(_channel == null)
-						active = false;
+					if(_position == 0)
+					{
+						if(_channel == null)
+							_channel = _sound.play(0,9999,_transform);
+						if(_channel == null)
+							active = false;
+					}
 					else
-						_channel.addEventListener(Event.SOUND_COMPLETE, looped);
+					{
+						_channel = _sound.play(_position,0,_transform);
+						if(_channel == null)
+							active = false;
+						else
+							_channel.addEventListener(Event.SOUND_COMPLETE, looped);
+					}
 				}
 			}
 			else
@@ -411,5 +453,49 @@ package org.flixel
 				artist = _sound.id3.artist;
 			_sound.removeEventListener(Event.ID3, gotID3);
 		}
+		
+		//this is just forwarding the event and bufferSize to the extraction function.
+		protected function sampleData( event:SampleDataEvent ):void
+		{
+			extract( event.data, bufferSize );
+		}
+
+		/**
+		 * This methods extracts audio data from the mp3 and wraps it automatically with respect to encoder delay
+		 *
+		 * @param target The ByteArray where to write the audio data
+		 * @param length The amount of samples to be read
+		 */
+		protected function extract( target: ByteArray, length:int ):void
+		{
+			if (samplesTotal == 0) return;
+			while( 0 < length )
+			{
+				if( samplesPosition + length > samplesTotal )
+				{
+					var read: int = samplesTotal - samplesPosition;
+
+					_in.extract( target, read, samplesPosition + MAGIC_DELAY );
+
+					samplesPosition += read;
+
+					length -= read;
+				}
+				else
+				{
+					_in.extract( target, length, samplesPosition + MAGIC_DELAY );
+
+					samplesPosition += length;
+
+					length = 0;
+				}
+
+				if( samplesPosition == samplesTotal ) // WE ARE AT THE END OF THE LOOP > WRAP
+				{
+					samplesPosition = 0;
+				}
+			}
+		}
+
 	}
 }

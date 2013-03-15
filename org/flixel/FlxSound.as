@@ -112,29 +112,45 @@ package org.flixel
 		 * 
 		 * @param	EmbeddedSound	An embedded Class object representing an MP3 file.
 		 * @param	Looped			Whether or not this sound should loop endlessly.
-		 * @param	totalSamples	If looped is true, the number of samples is needed.
 		 * 
 		 * @return	This <code>FlxSound</code> instance (nice for chaining stuff together, if you're into that).
 		 */
-		public function loadEmbedded(EmbeddedSound:Class, Looped:Boolean=false, totalSamples:int = 0):FlxSound
+		public function loadEmbedded(EmbeddedSound:Class, Looped:Boolean=false):FlxSound
 		{
 			stop();
 			init();
-			if (Looped)
-			{
-				_in = new EmbeddedSound;
-				_sound = new Sound();
-				_sound.addEventListener( SampleDataEvent.SAMPLE_DATA, sampleData );
-				samplesTotal = totalSamples - MAGIC_DELAY; //prevents any delay at the end of the track as well.
-			}
-			else _sound = new EmbeddedSound;
+			_sound = new EmbeddedSound();
 			//NOTE: can't pull ID3 info from embedded sound currently
-			_streaming = false;
 			_looped = Looped;
 			updateTransform();
 			active = true;
 			return this;
 		}
+		
+		/**
+		 * Loads a sound from an embedded MP3 and loops it seamlessly.
+		 * 
+		 * @param	EmbeddedSound	An embedded Class object representing an MP3 file.
+		 * @param	totalSamples	The number of samples is needed.
+		 * 
+		 * @return	This <code>FlxSound</code> instance (nice for chaining stuff together, if you're into that).
+		 */
+		public function loadEmbeddedSeamlessly(EmbeddedSound:Class, totalSamples:int):FlxSound
+		{
+			stop();
+			init();
+			_in = new EmbeddedSound;
+			_sound = new Sound();
+			_sound.addEventListener( SampleDataEvent.SAMPLE_DATA, sampleData );
+			samplesTotal = totalSamples - MAGIC_DELAY; //prevents any delay at the end of the track as well.
+			//NOTE: can't pull ID3 info from embedded sound currently
+			_streaming = false;
+			_looped = true;
+			updateTransform();
+			active = true;
+			return this;
+		}
+		
 		
 		/**
 		 * One of two main setup functions for sounds, this function loads a sound from a URL.
@@ -188,7 +204,7 @@ package org.flixel
 				return;
 			if(_looped)
 			{
-				if (!_streaming)
+				if(!_streaming || (_position == 0))
 				{
 					if(_channel == null)
 						_channel = _sound.play(0,9999,_transform);
@@ -197,21 +213,11 @@ package org.flixel
 				}
 				else
 				{
-					if(_position == 0)
-					{
-						if(_channel == null)
-							_channel = _sound.play(0,9999,_transform);
-						if(_channel == null)
-							active = false;
-					}
+					_channel = _sound.play(_position,0,_transform);
+					if(_channel == null)
+						active = false;
 					else
-					{
-						_channel = _sound.play(_position,0,_transform);
-						if(_channel == null)
-							active = false;
-						else
-							_channel.addEventListener(Event.SOUND_COMPLETE, looped);
-					}
+						_channel.addEventListener(Event.SOUND_COMPLETE, looped);
 				}
 			}
 			else
